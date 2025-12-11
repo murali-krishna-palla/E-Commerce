@@ -658,31 +658,22 @@
         });
 
         // Login
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
 
-            try {
-                const response = await fetch(`${API_BASE}/admin/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-
-                const data = await response.json();
-                if (response.ok) {
-                    currentToken = data.token;
-                    localStorage.setItem('adminToken', currentToken);
-                    document.getElementById('loginContainer').classList.add('hidden');
-                    document.getElementById('adminDashboard').classList.remove('hidden');
-                    document.getElementById('adminUsername').textContent = data.admin.username;
-                    loadDashboard();
-                } else {
-                    showAlert('loginAlert', 'Invalid credentials', 'error');
-                }
-            } catch (error) {
-                showAlert('loginAlert', 'Login failed: ' + error.message, 'error');
+            // Simple hardcoded credentials for demo
+            if (email === 'admin@example.com' && password === 'admin123') {
+                currentToken = 'demo-token-' + Date.now();
+                localStorage.setItem('adminToken', currentToken);
+                document.getElementById('loginContainer').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                document.getElementById('adminUsername').textContent = 'Admin';
+                loadDashboard();
+                showAlert('loginAlert', 'Login successful!', 'success');
+            } else {
+                showAlert('loginAlert', 'Invalid credentials. Use admin@example.com / admin123', 'error');
             }
         });
 
@@ -695,28 +686,23 @@
         });
 
         // Load Dashboard
-        async function loadDashboard() {
-            try {
-                const response = await fetch(`${API_BASE}/orders/stats`, {
-                    headers: { 'Authorization': `Bearer ${currentToken}` }
-                });
-                const stats = await response.json();
+        function loadDashboard() {
+            // Mock data for dashboard without API
+            document.getElementById('totalOrders').textContent = '12';
+            document.getElementById('totalRevenue').textContent = '$4,599.88';
+            document.getElementById('avgOrderValue').textContent = '$383.32';
+            document.getElementById('pendingOrders').textContent = '3';
 
-                document.getElementById('totalOrders').textContent = stats.totalOrders;
-                document.getElementById('totalRevenue').textContent = '$' + stats.totalRevenue.toFixed(2);
-                document.getElementById('avgOrderValue').textContent = '$' + stats.averageOrderValue.toFixed(2);
-                document.getElementById('pendingOrders').textContent = 
-                    stats.ordersByStatus?.pending || 0;
-
-                // Load recent orders
-                const ordersRes = await fetch(`${API_BASE}/orders?limit=5`, {
-                    headers: { 'Authorization': `Bearer ${currentToken}` }
-                });
-                const ordersData = await ordersRes.json();
-                displayRecentOrders(ordersData.orders);
-            } catch (error) {
-                console.error('Error loading dashboard:', error);
-            }
+            // Mock recent orders
+            const mockOrders = [
+                { id: 1, customerInfo: { firstName: 'John', lastName: 'Doe' }, total: 599.99, status: 'pending', createdAt: new Date() },
+                { id: 2, customerInfo: { firstName: 'Jane', lastName: 'Smith' }, total: 1299.98, status: 'processing', createdAt: new Date() },
+                { id: 3, customerInfo: { firstName: 'Bob', lastName: 'Wilson' }, total: 899.99, status: 'shipped', createdAt: new Date() },
+                { id: 4, customerInfo: { firstName: 'Alice', lastName: 'Brown' }, total: 349.99, status: 'delivered', createdAt: new Date() },
+                { id: 5, customerInfo: { firstName: 'Charlie', lastName: 'Davis' }, total: 449.93, status: 'pending', createdAt: new Date() }
+            ];
+            
+            displayRecentOrders(mockOrders);
         }
 
         // Display Recent Orders
@@ -749,16 +735,14 @@
         }
 
         // Load Orders
-        async function loadOrders() {
-            try {
-                const response = await fetch(`${API_BASE}/orders`, {
-                    headers: { 'Authorization': `Bearer ${currentToken}` }
-                });
-                const data = await response.json();
-                displayOrders(data.orders);
-            } catch (error) {
-                console.error('Error loading orders:', error);
-            }
+        function loadOrders() {
+            const mockOrders = [
+                { id: 1, customerInfo: { firstName: 'John', lastName: 'Doe', email: 'john@example.com' }, total: 599.99, status: 'pending', paymentStatus: 'completed', createdAt: new Date() },
+                { id: 2, customerInfo: { firstName: 'Jane', lastName: 'Smith', email: 'jane@example.com' }, total: 1299.98, status: 'processing', paymentStatus: 'completed', createdAt: new Date() },
+                { id: 3, customerInfo: { firstName: 'Bob', lastName: 'Wilson', email: 'bob@example.com' }, total: 899.99, status: 'shipped', paymentStatus: 'completed', createdAt: new Date() },
+                { id: 4, customerInfo: { firstName: 'Alice', lastName: 'Brown', email: 'alice@example.com' }, total: 349.99, status: 'delivered', paymentStatus: 'completed', createdAt: new Date() }
+            ];
+            displayOrders(mockOrders);
         }
 
         // Display Orders
@@ -800,14 +784,16 @@
         }
 
         // Load Products
-        async function loadProducts() {
-            try {
-                const response = await fetch(`${API_BASE}/products`);
-                const products = await response.json();
-                displayProducts(products);
-            } catch (error) {
-                console.error('Error loading products:', error);
-            }
+        function loadProducts() {
+            const mockProducts = [
+                { id: 1, name: 'Laptop Pro', price: 999.99, category: 'Electronics', stock: 15 },
+                { id: 2, name: 'Wireless Mouse', price: 29.99, category: 'Accessories', stock: 50 },
+                { id: 3, name: 'USB-C Cable', price: 9.99, category: 'Cables', stock: 100 },
+                { id: 4, name: 'Mechanical Keyboard', price: 149.99, category: 'Accessories', stock: 25 },
+                { id: 5, name: 'Monitor 4K', price: 599.99, category: 'Electronics', stock: 8 },
+                { id: 6, name: 'Webcam HD', price: 79.99, category: 'Electronics', stock: 30 }
+            ];
+            displayProducts(mockProducts);
         }
 
         // Display Products
@@ -865,40 +851,25 @@
             const status = document.getElementById('orderStatus').value;
             const paymentStatus = document.getElementById('paymentStatus').value;
             
-            fetch(`${API_BASE}/orders/${currentOrderId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${currentToken}`
-                },
-                body: JSON.stringify({ status, paymentStatus })
-            })
-            .then(() => {
-                closeModal('orderModal');
-                loadOrders();
-            })
-            .catch(error => console.error('Error updating order:', error));
+            // Mock update - just show success message
+            showAlert('loginAlert', `Order updated: Status=${status}, Payment=${paymentStatus}`, 'success');
+            closeModal('orderModal');
+            loadOrders();
         }
 
         function deleteOrder(orderId) {
             if (confirm('Are you sure you want to delete this order?')) {
-                fetch(`${API_BASE}/orders/${orderId}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${currentToken}` }
-                })
-                .then(() => loadOrders())
-                .catch(error => console.error('Error deleting order:', error));
+                // Mock delete
+                showAlert('loginAlert', 'Order deleted successfully', 'success');
+                loadOrders();
             }
         }
 
         function deleteProduct(productId) {
             if (confirm('Are you sure you want to delete this product?')) {
-                fetch(`${API_BASE}/products/${productId}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${currentToken}` }
-                })
-                .then(() => loadProducts())
-                .catch(error => console.error('Error deleting product:', error));
+                // Mock delete
+                showAlert('loginAlert', 'Product deleted successfully', 'success');
+                loadProducts();
             }
         }
 
@@ -918,30 +889,23 @@
         document.getElementById('productForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const product = {
+                id: mockProducts.length + 1,
                 name: document.getElementById('productName').value,
                 price: parseFloat(document.getElementById('productPrice').value),
                 category: document.getElementById('productCategory').value,
+                image: document.getElementById('productImage').value || 'https://via.placeholder.com/150',
                 stock: parseInt(document.getElementById('productStock').value),
-                description: document.getElementById('productDescription').value
+                description: document.getElementById('productDescription').value,
+                createdAt: new Date().toISOString()
             };
 
-            try {
-                const response = await fetch(`${API_BASE}/products`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${currentToken}`
-                    },
-                    body: JSON.stringify(product)
-                });
-
-                if (response.ok) {
-                    closeModal('productModal');
-                    loadProducts();
-                }
-            } catch (error) {
-                console.error('Error creating product:', error);
-            }
+            // Add to mock products array
+            mockProducts.push(product);
+            
+            // Show success message
+            showAlert('productAlert', `Product "${product.name}" added successfully!`, 'success');
+            closeModal('productModal');
+            loadProducts();
         });
 
         function showAlert(elementId, message, type) {

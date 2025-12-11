@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - E-Commerce</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+        }
+
+        .admin-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin-bottom: 15px;
+        }
+
+        .sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .sidebar a:hover {
+            background: #3498db;
+        }
+
+        .sidebar a.active {
+            background: #3498db;
+            font-weight: bold;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            border-bottom: 1px solid #ecf0f1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .top-bar h1 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logout-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-card h3 {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            color: #27ae60;
+            margin-top: 5px;
+        }
+
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filters input,
+        .filters select {
+            padding: 8px 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .filters button {
+            padding: 8px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .filters button:hover {
+            background: #2980b9;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table thead {
+            background: #ecf0f1;
+        }
+
+        .table th {
+            padding: 15px;
+            text-align: left;
+            color: #2c3e50;
+            font-weight: 600;
+            border-bottom: 2px solid #bdc3c7;
+        }
+
+        .table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .table tbody tr:hover {
+            background: #f9f9f9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #f39c12;
+            color: white;
+        }
+
+        .status-processing {
+            background: #3498db;
+            color: white;
+        }
+
+        .status-shipped {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .status-delivered {
+            background: #27ae60;
+            color: white;
+        }
+
+        .status-cancelled {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .btn-edit {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-small:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #2c3e50;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-primary {
+            background: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-primary:hover {
+            background: #229954;
+        }
+
+        .btn-cancel {
+            background: #95a5a6;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-cancel:hover {
+            background: #7f8c8d;
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-box h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .admin-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .sidebar ul {
+                display: flex;
+                gap: 20px;
+            }
+
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Container -->
+    <div id="loginContainer" class="login-container">
+        <div class="login-box">
+            <h1>🛍️ Admin Panel</h1>
+            <div id="loginAlert"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" placeholder="admin@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Password" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;">Login</button>
+                <p style="text-align: center; margin-top: 20px; color: #7f8c8d;">
+                    Demo Credentials:<br>
+                    Email: admin@example.com<br>
+                    Password: admin123
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="hidden">
+        <div class="admin-container">
+            <div class="sidebar">
+                <h2>Admin Menu</h2>
+                <ul>
+                    <li><a href="#" class="nav-link active" data-section="dashboard">📊 Dashboard</a></li>
+                    <li><a href="#" class="nav-link" data-section="orders">📦 Orders</a></li>
+                    <li><a href="#" class="nav-link" data-section="products">📁 Products</a></li>
+                    <li><a href="#" class="nav-link" data-section="settings">⚙️ Settings</a></li>
+                </ul>
+            </div>
+
+            <div class="main-content">
+                <div class="top-bar">
+                    <h1 id="pageTitle">Dashboard</h1>
+                    <div class="user-info">
+                        <span id="adminUsername">Admin</span>
+                        <button class="logout-btn" id="logoutBtn">Logout</button>
+                    </div>
+                </div>
+
+                <div class="content">
+                    <!-- Dashboard Section -->
+                    <div id="dashboardSection" class="section">
+                        <h2>Dashboard Overview</h2>
+                        <div class="dashboard">
+                            <div class="stat-card">
+                                <h3>Total Orders</h3>
+                                <div class="stat-value" id="totalOrders">0</div>
+                                <div class="stat-change">Last 30 days</div>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Total Revenue</h3>
+                                <div class="stat-value" id="totalRevenue">$0</div>
+                                <div class="stat-change">+12% from last month</div>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Average Order Value</h3>
+                                <div class="stat-value" id="avgOrderValue">$0</div>
+                                <div class="stat-change">Per transaction</div>
+                            </div>
+                            <div class="stat-card">
+                                <h3>Pending Orders</h3>
+                                <div class="stat-value" id="pendingOrders">0</div>
+                                <div class="stat-change">Awaiting processing</div>
+                            </div>
+                        </div>
+
+                        <h2 style="margin-top: 30px;">Recent Orders</h2>
+                        <div id="recentOrdersList"></div>
+                    </div>
+
+                    <!-- Orders Section -->
+                    <div id="ordersSection" class="section hidden">
+                        <h2>Orders Management</h2>
+                        <div class="filters">
+                            <select id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="shipped">Shipped</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                            <button onclick="filterOrders()">Filter</button>
+                            <button onclick="exportOrders()" style="background: #27ae60;">Export CSV</button>
+                        </div>
+                        <div id="ordersList"></div>
+                    </div>
+
+                    <!-- Products Section -->
+                    <div id="productsSection" class="section hidden">
+                        <h2>Products Management</h2>
+                        <button class="btn-primary" style="margin-bottom: 20px;" onclick="openAddProductModal()">+ Add Product</button>
+                        <div id="productsList"></div>
+                    </div>
+
+                    <!-- Settings Section -->
+                    <div id="settingsSection" class="section hidden">
+                        <h2>Settings</h2>
+                        <div class="form-group">
+                            <label>Store Name</label>
+                            <input type="text" value="E-Commerce Store">
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Email</label>
+                            <input type="email" value="support@ecommerce.com">
+                        </div>
+                        <button class="btn-primary">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Update Order</h2>
+                <button class="close-btn" onclick="closeModal('orderModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Order Status</label>
+                <select id="orderStatus">
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Payment Status</label>
+                <select id="paymentStatus">
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                    <option value="failed">Failed</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button class="btn-cancel" onclick="closeModal('orderModal')">Cancel</button>
+                <button class="btn-primary" onclick="updateOrder()">Update</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="productModalTitle">Add Product</h2>
+                <button class="close-btn" onclick="closeModal('productModal')">&times;</button>
+            </div>
+            <form id="productForm">
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label>Price</label>
+                    <input type="number" id="productPrice" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <input type="text" id="productCategory" required>
+                </div>
+                <div class="form-group">
+                    <label>Stock</label>
+                    <input type="number" id="productStock" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="productDescription">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" onclick="closeModal('productModal')">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        let currentToken = localStorage.getItem('adminToken');
+        let currentOrderId = null;
+        let currentProductId = null;
+
+        // Navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                const section = e.target.dataset.section;
+                document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+                
+                document.getElementById(section + 'Section').classList.remove('hidden');
+                document.getElementById('pageTitle').textContent = 
+                    section.charAt(0).toUpperCase() + section.slice(1);
+                
+                if (section === 'dashboard') loadDashboard();
+                if (section === 'orders') loadOrders();
+                if (section === 'products') loadProducts();
+            });
+        });
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    currentToken = data.token;
+                    localStorage.setItem('adminToken', currentToken);
+                    document.getElementById('loginContainer').classList.add('hidden');
+                    document.getElementById('adminDashboard').classList.remove('hidden');
+                    document.getElementById('adminUsername').textContent = data.admin.username;
+                    loadDashboard();
+                } else {
+                    showAlert('loginAlert', 'Invalid credentials', 'error');
+                }
+            } catch (error) {
+                showAlert('loginAlert', 'Login failed: ' + error.message, 'error');
+            }
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('adminToken');
+            document.getElementById('loginContainer').classList.remove('hidden');
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('loginForm').reset();
+        });
+
+        // Load Dashboard
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/orders/stats`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                const stats = await response.json();
+
+                document.getElementById('totalOrders').textContent = stats.totalOrders;
+                document.getElementById('totalRevenue').textContent = '$' + stats.totalRevenue.toFixed(2);
+                document.getElementById('avgOrderValue').textContent = '$' + stats.averageOrderValue.toFixed(2);
+                document.getElementById('pendingOrders').textContent = 
+                    stats.ordersByStatus?.pending || 0;
+
+                // Load recent orders
+                const ordersRes = await fetch(`${API_BASE}/orders?limit=5`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                const ordersData = await ordersRes.json();
+                displayRecentOrders(ordersData.orders);
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        // Display Recent Orders
+        function displayRecentOrders(orders) {
+            const html = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${orders.map(order => `
+                            <tr>
+                                <td>#${order._id?.substring(0, 8) || order.id}</td>
+                                <td>${order.customerInfo.firstName} ${order.customerInfo.lastName}</td>
+                                <td>$${order.total.toFixed(2)}</td>
+                                <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                                <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('recentOrdersList').innerHTML = html;
+        }
+
+        // Load Orders
+        async function loadOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/orders`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                const data = await response.json();
+                displayOrders(data.orders);
+            } catch (error) {
+                console.error('Error loading orders:', error);
+            }
+        }
+
+        // Display Orders
+        function displayOrders(orders) {
+            const html = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Email</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${orders.map(order => `
+                            <tr>
+                                <td>#${order._id?.substring(0, 8) || order.id}</td>
+                                <td>${order.customerInfo.firstName} ${order.customerInfo.lastName}</td>
+                                <td>${order.customerInfo.email}</td>
+                                <td>$${order.total.toFixed(2)}</td>
+                                <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                                <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-small btn-edit" onclick="openOrderModal('${order._id || order.id}')">Edit</button>
+                                        <button class="btn-small btn-delete" onclick="deleteOrder('${order._id || order.id}')">Delete</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('ordersList').innerHTML = html;
+        }
+
+        // Load Products
+        async function loadProducts() {
+            try {
+                const response = await fetch(`${API_BASE}/products`);
+                const products = await response.json();
+                displayProducts(products);
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
+        }
+
+        // Display Products
+        function displayProducts(products) {
+            const html = `
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Category</th>
+                            <th>Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${products.map(product => `
+                            <tr>
+                                <td>${product.name}</td>
+                                <td>$${product.price.toFixed(2)}</td>
+                                <td>${product.category}</td>
+                                <td>${product.stock}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn-small btn-edit" onclick="editProduct('${product._id || product.id}')">Edit</button>
+                                        <button class="btn-small btn-delete" onclick="deleteProduct('${product._id || product.id}')">Delete</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('productsList').innerHTML = html;
+        }
+
+        // Modals
+        function openOrderModal(orderId) {
+            currentOrderId = orderId;
+            document.getElementById('orderModal').classList.add('active');
+        }
+
+        function openAddProductModal() {
+            currentProductId = null;
+            document.getElementById('productModalTitle').textContent = 'Add Product';
+            document.getElementById('productForm').reset();
+            document.getElementById('productModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function updateOrder() {
+            const status = document.getElementById('orderStatus').value;
+            const paymentStatus = document.getElementById('paymentStatus').value;
+            
+            fetch(`${API_BASE}/orders/${currentOrderId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentToken}`
+                },
+                body: JSON.stringify({ status, paymentStatus })
+            })
+            .then(() => {
+                closeModal('orderModal');
+                loadOrders();
+            })
+            .catch(error => console.error('Error updating order:', error));
+        }
+
+        function deleteOrder(orderId) {
+            if (confirm('Are you sure you want to delete this order?')) {
+                fetch(`${API_BASE}/orders/${orderId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                })
+                .then(() => loadOrders())
+                .catch(error => console.error('Error deleting order:', error));
+            }
+        }
+
+        function deleteProduct(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                fetch(`${API_BASE}/products/${productId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                })
+                .then(() => loadProducts())
+                .catch(error => console.error('Error deleting product:', error));
+            }
+        }
+
+        function filterOrders() {
+            loadOrders();
+        }
+
+        function exportOrders() {
+            window.open(`${API_BASE}/orders/export`, '_blank');
+        }
+
+        function editProduct(productId) {
+            // TODO: Implement edit product
+            alert('Edit product feature coming soon!');
+        }
+
+        document.getElementById('productForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const product = {
+                name: document.getElementById('productName').value,
+                price: parseFloat(document.getElementById('productPrice').value),
+                category: document.getElementById('productCategory').value,
+                stock: parseInt(document.getElementById('productStock').value),
+                description: document.getElementById('productDescription').value
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/products`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${currentToken}`
+                    },
+                    body: JSON.stringify(product)
+                });
+
+                if (response.ok) {
+                    closeModal('productModal');
+                    loadProducts();
+                }
+            } catch (error) {
+                console.error('Error creating product:', error);
+            }
+        });
+
+        function showAlert(elementId, message, type) {
+            const alertEl = document.getElementById(elementId);
+            alertEl.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        }
+
+        // Check if already logged in
+        if (currentToken) {
+            document.getElementById('loginContainer').classList.add('hidden');
+            document.getElementById('adminDashboard').classList.remove('hidden');
+            loadDashboard();
+        }
+    </script>
+</body>
+</html>

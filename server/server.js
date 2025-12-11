@@ -1,44 +1,34 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Database connection
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/ecommerce';
+mongoose.connect(mongoUri)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.log('MongoDB connection error:', err));
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..')));
 
-// Mock database
-let products = [
-  { id: 1, name: 'Laptop Pro', price: 999.99, category: 'Electronics', image: 'https://via.placeholder.com/200?text=Laptop', description: 'High-performance laptop' },
-  { id: 2, name: 'Wireless Mouse', price: 29.99, category: 'Accessories', image: 'https://via.placeholder.com/200?text=Mouse', description: 'Ergonomic wireless mouse' },
-  { id: 3, name: 'USB-C Cable', price: 9.99, category: 'Cables', image: 'https://via.placeholder.com/200?text=Cable', description: 'Durable USB-C cable' },
-  { id: 4, name: 'Mechanical Keyboard', price: 149.99, category: 'Accessories', image: 'https://via.placeholder.com/200?text=Keyboard', description: 'RGB mechanical keyboard' },
-  { id: 5, name: 'Monitor 4K', price: 599.99, category: 'Electronics', image: 'https://via.placeholder.com/200?text=Monitor', description: '32-inch 4K monitor' },
-  { id: 6, name: 'Webcam HD', price: 79.99, category: 'Electronics', image: 'https://via.placeholder.com/200?text=Webcam', description: '1080p HD webcam' }
-];
-
-let cart = [];
-let orders = [];
-
 // Routes
+const adminRoutes = require('./routes/admin');
+const productRoutes = require('./routes/products');
+const orderRoutes = require('./routes/orders');
 
-// Get all products
-app.get('/api/products', (req, res) => {
-  res.json(products);
-});
+app.use('/api/admin', adminRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
 
-// Get product by ID
-app.get('/api/products/:id', (req, res) => {
-  const product = products.find(p => p.id === parseInt(req.params.id));
-  if (!product) {
-    return res.status(404).json({ message: 'Product not found' });
-  }
-  res.json(product);
-});
+// Legacy cart endpoints for backwards compatibility
+let cart = [];
 
 // Get cart
 app.get('/api/cart', (req, res) => {
@@ -48,19 +38,13 @@ app.get('/api/cart', (req, res) => {
 // Add to cart
 app.post('/api/cart', (req, res) => {
   const { productId, quantity } = req.body;
-  const product = products.find(p => p.id === productId);
-  
-  if (!product) {
-    return res.status(404).json({ message: 'Product not found' });
-  }
-
   const cartItem = cart.find(item => item.id === productId);
   
   if (cartItem) {
     cartItem.quantity += quantity;
   } else {
     cart.push({
-      ...product,
+      id: productId,
       quantity
     });
   }
@@ -96,52 +80,6 @@ app.put('/api/cart/:productId', (req, res) => {
 app.delete('/api/cart', (req, res) => {
   cart = [];
   res.json({ message: 'Cart cleared' });
-});
-
-// Checkout
-app.post('/api/checkout', (req, res) => {
-  const { customerInfo } = req.body;
-  
-  if (cart.length === 0) {
-    return res.status(400).json({ message: 'Cart is empty' });
-  }
-
-  const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  
-  const order = {
-    id: orders.length + 1,
-    items: cart,
-    customerInfo,
-    total,
-    status: 'pending',
-    createdAt: new Date()
-  };
-
-  orders.push(order);
-  cart = [];
-
-  res.json({ 
-    message: 'Order placed successfully', 
-    order: {
-      id: order.id,
-      total: order.total,
-      status: order.status
-    }
-  });
-});
-
-// Get all orders (admin)
-app.get('/api/orders', (req, res) => {
-  res.json(orders);
-});
-
-// Get order by ID
-app.get('/api/orders/:id', (req, res) => {
-  const order = orders.find(o => o.id === parseInt(req.params.id));
-  if (!order) {
-    return res.status(404).json({ message: 'Order not found' });
-  }
-  res.json(order);
 });
 
 // Health check

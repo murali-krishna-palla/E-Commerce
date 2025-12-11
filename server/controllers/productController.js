@@ -1,12 +1,24 @@
 const Product = require('../models/Product');
 
+// Mock data for fallback when MongoDB is not available
+const mockProducts = [
+  { id: 1, name: 'Laptop Pro', price: 999.99, category: 'Electronics', image: 'https://via.placeholder.com/200?text=Laptop', description: 'High-performance laptop' },
+  { id: 2, name: 'Wireless Mouse', price: 29.99, category: 'Accessories', image: 'https://via.placeholder.com/200?text=Mouse', description: 'Ergonomic wireless mouse' },
+  { id: 3, name: 'USB-C Cable', price: 9.99, category: 'Cables', image: 'https://via.placeholder.com/200?text=Cable', description: 'Durable USB-C cable' },
+  { id: 4, name: 'Mechanical Keyboard', price: 149.99, category: 'Accessories', image: 'https://via.placeholder.com/200?text=Keyboard', description: 'RGB mechanical keyboard' },
+  { id: 5, name: 'Monitor 4K', price: 599.99, category: 'Electronics', image: 'https://via.placeholder.com/200?text=Monitor', description: '32-inch 4K monitor' },
+  { id: 6, name: 'Webcam HD', price: 79.99, category: 'Electronics', image: 'https://via.placeholder.com/200?text=Webcam', description: '1080p HD webcam' }
+];
+
 // Get all products
 exports.getAllProducts = async (req, res) => {
   try {
     const products = await Product.find();
     res.json(products);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    // Fall back to mock data if MongoDB is not available
+    console.log('Using mock data - MongoDB not available');
+    res.json(mockProducts);
   }
 };
 
@@ -66,6 +78,12 @@ exports.getProductById = async (req, res) => {
     }
     res.json(product);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    // Try mock data as fallback
+    const mockProduct = mockProducts.find(p => p.id === parseInt(req.params.id));
+    if (mockProduct) {
+      res.json(mockProduct);
+    } else {
+      res.status(404).json({ message: 'Product not found' });
+    }
   }
 };
